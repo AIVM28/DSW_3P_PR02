@@ -1,95 +1,85 @@
-using DSW_3P_PR01.Models;
-using DSW_3P_PR01.Repositories;
 
-namespace DSW_3P_PR01.Services;
+using DSW_3P_PR02.Models;
+using DSW_3P_PR02.Repositories;
 
-public class MisionService : IMisionService
+namespace DSW_3P_PR02.Services;
+
+public class EventoService : IEventoService
 {
-    private readonly IMisionRepository _repository;
+    private readonly IEventoRepository _repository;
 
-    public MisionService(IMisionRepository repository)
+    public EventoService(IEventoRepository repository)
     {
         _repository = repository;
     }
 
-    // Validar las reglas de negocio de una misión.
-    private static void Validar(Mision mision)
+    // Validar las reglas de negocio de un evento.
+    private static void Validar(Evento evento)
     {
-        if (string.IsNullOrWhiteSpace(mision.Nombre))
+        if (string.IsNullOrWhiteSpace(evento.Nombre))
         {
             throw new ArgumentException(
-                "El nombre de la misión es obligatorio."
+                "El nombre del evento es obligatorio."
             );
         }
 
-        if (string.IsNullOrWhiteSpace(mision.Dificultad))
+        if (evento.CupoMaximo <= 0)
         {
             throw new ArgumentException(
-                "La dificultad de la misión es obligatoria."
+                "El cupo máximo debe ser mayor que cero."
             );
         }
 
-        string dificultad = mision.Dificultad.Trim();
-
-        if (
-            !dificultad.Equals("Fácil", StringComparison.OrdinalIgnoreCase)
-            && !dificultad.Equals("Media", StringComparison.OrdinalIgnoreCase)
-            && !dificultad.Equals("Difícil", StringComparison.OrdinalIgnoreCase)
-        )
+        
+        if (evento.Fecha.Date < DateTime.Today)
         {
             throw new ArgumentException(
-                "La dificultad debe ser Fácil, Media o Difícil."
+                "La fecha del evento no puede ser anterior a la fecha actual."
             );
         }
 
-        if (mision.RecompensaXP < 0)
-        {
-            throw new ArgumentException(
-                "La recompensa XP no puede ser negativa."
-            );
-        }
     }
 
-    // Obtener todas las misiones.
-    public List<Mision> ObtenerTodas()
+    // Obtener todos los eventos.
+    public List<Evento> ObtenerTodos()
     {
-        return _repository.ObtenerTodas();
+        return _repository.ObtenerTodos();
     }
 
-    // Obtener una misión por su identificador.
-    public Mision? ObtenerPorId(int id)
+    // Obtener un evento por su identificador.
+    public Evento? ObtenerPorId(int id)
     {
         return _repository.ObtenerPorId(id);
     }
 
-    // Registrar una nueva misión.
-    public Mision Agregar(Mision nuevaMision)
+    // Registrar un nuevo evento.
+    public Evento Agregar(Evento nuevoEvento)
     {
-        Validar(nuevaMision);
+        Validar(nuevoEvento);
 
-        // Todas las misiones nuevas comienzan sin completar.
-        nuevaMision.Completada = false;
+        // Todos los eventos nuevos comienzan activos.
+        nuevoEvento.Activo = true;
 
-        return _repository.Agregar(nuevaMision);
+        return _repository.Agregar(nuevoEvento);
     }
 
-    // Actualizar una misión existente.
-    public bool Actualizar(int id, Mision misionActualizada)
+    // Actualizar un evento existente.
+    public bool Actualizar(int id, Evento eventoActualizado)
     {
         if (_repository.ObtenerPorId(id) == null)
         {
             return false;
         }
 
-        Validar(misionActualizada);
+        Validar(eventoActualizado);
 
         // El identificador de la URL prevalece sobre el del cuerpo.
-        misionActualizada.Id = id;
+        eventoActualizado.Id = id;
 
-        return _repository.Actualizar(id, misionActualizada);
+        return _repository.Actualizar(id, eventoActualizado);
     }
 
-    // Eliminar una misión existente.
+    // Eliminar un evento existente.
     public bool Eliminar(int id)
     {
         return _repository.Eliminar(id);
